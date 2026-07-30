@@ -1,45 +1,63 @@
 # fleet-commander
 
-`fleet-commander` is a field-tested operating manual for directing multiple coding-agent workers across tmux panes, herdr workspaces, and remote SSH seats. It exists to make delegation reliable: exact targeting, self-contained contracts, independent heartbeats, safe correction, verified handback, and continuous harvesting of operational lessons.
+`fleet-commander` is a field-tested operating manual for directing coding-agent
+workers across tmux panes, herdr workspaces, and remote SSH seats. It turns
+orchestration judgment into repeatable checks: exact targeting, self-contained
+contracts, independent heartbeats, safe correction, verified handback, and
+continuous harvesting.
 
-**The core value proposition: this skill encodes command judgment as discipline, so a mid-tier model can run a fleet reliably.** Most orchestration failures are not intelligence failures — they are skipped verifications, trusted self-reports, mis-anchored waits, and swallowed keystrokes. Every rule in this skillbook exists because one of those failures happened in live operation and was distilled into a check the commander runs mechanically instead of judging in the moment. In live side-by-side use, a mid-tier model running this skill matched a frontier model's command quality on identical fleet tasks — the discipline, not the model, carried the loop.
+## What v2 adds
 
-This matters because frontier capacity is the scarce resource on every plan: subscription tiers cap frontier-model usage per week, and API pricing makes it expensive to burn on orchestration overhead. When your frontier quota runs dry mid-week, a commander seat running this skill keeps fleet quality flat on the mid-tier model instead of degrading with it — you spend the frontier budget on the work that actually needs it, and the command loop stays cheap. That gap is structural, not temporary: running the strongest model will always cost more, so encoding command judgment into discipline is value that compounds rather than expires.
+The typed durable task ledger extends the original four handback commands with
+five control-plane verbs:
+
+- `transition` — guarded typed state changes with monotonic sequence checks;
+- `heartbeat` — renewable worker leases and query-side lost-task detection;
+- `publish-task` — verify, hash, commit, and notify as one finish act;
+- `status` — inspect one task or the complete ledger as JSON;
+- `list` — filter task joins by state or parent.
+
+A mailbox-wide `flock` serializes state mutations. `register --owned-paths`
+rejects overlapping active writers, including ancestor/descendant overlaps.
+Registered result sets are pinned, and `publish-task` has zero side effects when
+any required path is missing. The helper remains compatible with the v1
+`register`, `return`, `pending`, and `ack` interface.
 
 ## Quickstart
 
-Prerequisites: a POSIX host with tmux (macOS, Linux, or WSL2), plus at least one supported agent harness.
+Prerequisites: a POSIX host with tmux (macOS, Linux, or WSL2), plus at least one
+supported agent harness.
 
-1. Install this directory as a skill and read `SKILL.md` completely.
-2. Inventory the runtime topology and choose an exact `session:window.pane` or herdr pane id.
-3. Put a self-contained job contract outside the worker's repository, for example `/tmp/commander/job.md`.
-4. Register the return path:
+1. Install this directory as a skill and read [`SKILL.md`](SKILL.md) completely.
+2. Read the matching worker adapter before launching Pi or herdr.
+3. Put the self-contained job contract under `~/fleet/<concern>/jobs/`.
+4. Register ownership and expected results:
 
    ```bash
    python3 <skill-dir>/scripts/return-channel.py register \
-     --task example-001 --worker-pane publish:0.0 --reply-to mastermind:0.0
+     --task example-001 --worker-pane publish:0.0 --reply-to mastermind:0.0 \
+     --owned-paths src/example --result-paths out/REPORT.md
    ```
 
-5. Launch the worker using the matching adapter, deliver the contract once, and prove it was consumed.
-6. Heartbeat from transcript, process/session state, deliverables, and the durable return mailbox.
-7. Verify the real artifact before acknowledging the return.
+5. Deliver the contract once, prove it was consumed, and heartbeat from
+   transcript, process/session state, artifacts, and ledger state.
+6. Have the worker finish with `publish-task`; verify the artifact before moving
+   the ledger through `verified` to `acked`.
 
-For Claude Code, use one unique named tmux buffer per large dispatch. For Pi and herdr, send a one-line pointer to the external job file. Read the relevant adapter before launching either harness.
+Run `python3 scripts/return-channel.py --help` for the complete state machine,
+enums, and CLI.
 
 ## File map
 
-- `SKILL.md` — the complete commander loop, return contract, recovery, remote-worker guidance, and guardrails.
-- `HERDR-WORKERS.md` — herdr launch, delivery, observation, Windows, and teardown mechanics.
-- `PI-WORKERS.md` — Pi launch, context, delivery, steering, and heartbeat mechanics.
-- `HARVEST.md` — the field-observation capture and promotion workflow.
-- `scripts/return-channel.py` — durable Worker → commander mailbox and tmux notification helper.
-- `CHANGELOG.md` — public release history.
-- `LICENSE` — MIT license.
-
-## Origin and versioning
-
-This project **originated as the 4th generation of a private battle-tested skillbook**. Public versioning starts independently at `v1.0.0`; the initial mapping is **v1.0.0 ← internal 4.0.0**. The public distribution is a single English-language version with no private repository history.
+- [`SKILL.md`](SKILL.md) — commander loop, typed lifecycle, recovery, and guardrails.
+- [`HERDR-WORKERS.md`](HERDR-WORKERS.md) — herdr launch, observation, and teardown.
+- [`PI-WORKERS.md`](PI-WORKERS.md) — Pi launch, delivery, and heartbeat mechanics.
+- [`HARVEST.md`](HARVEST.md) — field-observation capture and promotion workflow.
+- [`scripts/return-channel.py`](scripts/return-channel.py) — durable mailbox and ledger.
+- [`scripts/tests/test_return_channel.py`](scripts/tests/test_return_channel.py) — tests.
+- [`CHANGELOG.md`](CHANGELOG.md) — public release history.
+- [`LICENSE`](LICENSE) — MIT license.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [`LICENSE`](LICENSE).
