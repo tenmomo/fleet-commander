@@ -4,7 +4,7 @@ Use this branch whenever dispatch, steering, heartbeat, or handback behaves diff
 
 ## 1. Capture the replay
 
-Record expected behavior, observed behavior, independent evidence, recovery, and affected harness in `/tmp/commander/field-notes/<date>.md`. Keep field notes outside repositories and skill files while the incident is still uncertain. **Complete when:** another commander could reproduce the failure and distinguish it from the product task.
+Record expected behavior, observed behavior, independent evidence, recovery, and affected harness in `~/fleet/<concern>/evidence/field-notes/<date>.md`. Keep field notes outside repositories and skill files while the incident is still uncertain. **Complete when:** another commander could reproduce the failure and distinguish it from the product task.
 
 ## 2. Classify the observation
 
@@ -16,9 +16,11 @@ Choose exactly one disposition:
 
 Check the existing skill, disclosed adapters, pending proposals, and current git diff before deciding. Put each meaning in one source of truth: generic mechanics in `SKILL.md`, harness-only mechanics in that harness adapter.
 
-Style charter: all rule prose and hard-lesson paragraphs are in English, in a single layer only. The former bilingual English-header + non-English-body format was abolished in internal 4.0.0; retain the one layer that carries the full information and never add a new double-layer rule. Role vocabulary is fixed — **worker / commander / Mastermind** (plus *the user*; *owner* only as a possessive). Retired predecessor names are never roles. Project titles and personal names appear only inside incident citations, never in rule text. **Complete when:** every field observation has one disposition and one owner; none is silently carried forward.
+Style charter: rule prose in English; hard-lesson paragraphs may be Chinese — single layer only (the bilingual English-header + Chinese-body 双层体例 was abolished at 4.0.0; keep whichever layer carries more information, never add a new double-layer rule); role vocabulary is fixed — **worker / commander / Mastermind** (plus *the user*; *owner* only as a possessive). "overseer" is a retired skill name, never a role. Project titles and personal names appear only inside incident citations, never in rule text. **Complete when:** every field observation has one disposition and one owner; none is silently carried forward.
 
 ## 3. Apply at a safe checkpoint
+
+**改 frontmatter 前先记住:YAML 纯量里不能出现裸 `: `(冒号+空格)。** 往 `scope:` / `description:` 之类的**未加引号**的值里追加一句带冒号的英文小标题(如 `4.9.0 hardens EVIDENCE: acceptance must…`)会当场把 frontmatter 弄坏,而**故障是静默的**——skill 仍在、正文照读,只是列表里的 description 退化成 H1 标题(2026-07-26 实锤,靠 skill 列表那一行的变化才发现)。用破折号代替冒号,或给整个值加引号 / 改块标量 `>`。改完扫一遍确认每一行 value 里都没有 `: `。
 
 A single methodology owner patches the smallest behavior-changing unit while implementation workers stay off the skill surface. Preserve unrelated dirty changes. Use progressive disclosure for harness or branch-specific detail, bump the skill version according to its existing convention, and prune superseded wording rather than layering a second rule over it.
 
