@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [2.1.0] - 2026-08-05
+
+### Added
+
+- Added `CODEX-WORKERS.md`, a Codex seat adapter: model-id commissioning gate,
+  hook-trust false idle, the two footer context counters and the true window
+  size, the weekly pool shared with Pi, and the minimum seat kit.
+- Added the concern-string naming convention and the tmux `.`-in-name trap.
+- Added `ctx-probe`, a piggybacked method for measuring context degradation.
+
+### Changed
+
+- Made herdr workspace close part of the final ack, not optional cleanup.
+- Kept the parent-wake leg on ordinary jobs; `--no-notify` now requires a
+  commander-installed ledger joiner.
+- Added the third hypothesis face: numeric claims computable but only inferred.
+- Simplified Pi identity guidance to the current single-profile default.
+- Grew the book to five files; the return-channel helper itself is unchanged.
+
 ## [2.0.0] - 2026-07-30
 
 ### Added
