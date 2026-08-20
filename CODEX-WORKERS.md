@@ -4,7 +4,7 @@ Read this file completely whenever the target pane runs `codex`. The generic com
 
 ## Commissioning gate
 
-**Pin a ChatGPT-supported model explicitly.** On 2026-07-31 a herdr Codex seat launched with `codex-2025-07-15`; the ChatGPT-authenticated Codex route returned HTTP 400 immediately, produced no artifact, and left the task merely `registered` while the commander still described it as working. That provider id is not a valid fleet default. For the current ChatGPT-authenticated route use one of:
+**Pin a ChatGPT-supported model explicitly.** On 2026-07-31 a fleet seat launched with `codex-2025-07-15`; the ChatGPT-authenticated Codex route returned HTTP 400 immediately, produced no artifact, and left the task merely `registered` while the commander still described it as working. That provider id is not a valid fleet default. For the current the shared Pro pool / ChatGPT route use one of:
 
 ```text
 gpt-5.6-sol
@@ -18,8 +18,8 @@ Pin reasoning effort too. On the current model manifest, `gpt-5.6-sol` and `terr
 
 The minimum Codex fleet equipment is:
 
-1. `fleet-commander` resolvable on the Codex skills path — `~/.agents/skills/fleet-commander/SKILL.md`, which may be a symlink to the canonical `~/.claude/skills/fleet-commander/`;
-2. every MCP server the fleet's jobs depend on (for example a browser-automation MCP) configured and enabled (`codex mcp list`).
+1. `fleet-commander` resolvable at `~/.agents/skills/fleet-commander/SKILL.md` (on this machine it points to the canonical `~/.claude/skills/fleet-commander/`);
+2. your browser MCP configured and enabled (`codex mcp list`).
 
 Configuration presence is not readiness: inside the new seat, confirm the skill is discoverable and the MCP tools can be discovered before assigning work that depends on them. Existing Codex sessions do not hot-reload changed skill text; start a new chat/session or explicitly reread the companion after a skill update.
 
@@ -29,13 +29,13 @@ Before launch, record `codex --version`, `codex login status`, and `herdr integr
 
 Probe the exact pane before typing anything. A shell prompt accepts a launch command; a live Codex composer consumes that command as a user prompt. Reuse a live seat only when its task identity and model match the contract.
 
-For a tmux worker, pin model, effort, and permission posture at launch:
+Pin model, effort, and permission posture at launch:
 
 ```bash
-tmux new-session -d -s <concern> -c <worktree> \
-  "exec codex -m gpt-5.6-sol -c 'model_reasoning_effort=\"high\"' \
+herdr agent start <name> --kind codex --pane <pane_id> --timeout 60000 -- \
+  -m gpt-5.6-sol -c 'model_reasoning_effort="high"' \
   --dangerously-bypass-approvals-and-sandbox \
-  --dangerously-bypass-hook-trust"
+  --dangerously-bypass-hook-trust
 ```
 
 For a herdr worker, install the integration once, create the pane under the user-chosen workspace, then pass the real Codex flags after `--`:
@@ -59,7 +59,6 @@ The first enabled-hook launch can stop at a trust dialog while herdr reports `id
 ```bash
 herdr pane read <pane_id> --lines 40 --source visible --format text
 herdr agent send-keys <pane_id> t
-# tmux fabric: tmux send-keys -t <pane> t
 ```
 
 Trust persists for the hook hash, but a changed hook can ask again. The dialog may consume the queued job, so after clearing it always deliver the pointer again. Launch is complete only when the composer is visible and the footer confirms the requested model + reasoning, permission mode, Codex version, context window, cwd, and branch.
@@ -70,13 +69,12 @@ Keep the self-contained contract in `~/fleet/<concern>/jobs/<job>.md` and send C
 
 ```bash
 MSG='Skip any repo Session Init / health sweep / context ritual. Read ~/fleet/<concern>/jobs/<job>.md completely, then execute the entire job. The file is the authoritative contract; do not stop after planning.'
-tmux send-keys -t <pane> -l "$MSG"
-tmux send-keys -t <pane> C-m
+herdr agent prompt <pane_id> "$MSG" --wait --until working
 ```
 
-On herdr, use `herdr agent prompt <pane_id> "$MSG" --wait --until working`; follow `HERDR-WORKERS.md` if Enter stalls. Submission proof is not text visible in the composer. Require Codex's busy marker (`• Working (... • esc to interrupt)`), hook state `working`, or the contract's first tool/action. If hook trust or another dialog intercepted it, resolve the dialog and re-deliver.
+Follow `HERDR-WORKERS.md` if Enter stalls. Submission proof is not text visible in the composer. Require Codex's busy marker (`• Working (... • esc to interrupt)`), hook state `working`, or the contract's first tool/action. If hook trust or another dialog intercepted it, resolve the dialog and re-deliver.
 
-Short same-task corrections use one literal line plus a separate Enter. Put long corrections in a new durable job file and point Codex to it. Never paste a correction into an interactive dialog or mistake queued composer text for a consumed turn.
+Short same-task corrections use one `herdr agent prompt` line. Put long corrections in a new durable job file and point Codex to it. Never paste a correction into an interactive dialog or mistake queued composer text for a consumed turn.
 
 ## Context economy and lifecycle
 
@@ -84,7 +82,7 @@ For a new `task_id`, `/clear` is the Codex-native reset: it clears the terminal 
 
 `/compact` is only an in-flight rescue after state has been written to disk. A compaction summary can drop seat identity, skill rules, or mutable ids; after compaction reread `~/fleet/<concern>/SEAT.md`, the job contract, and this adapter before continuing.
 
-`/exit` is a valid Codex command and exits the TUI; this is intentionally different from Pi, where `/exit` is a billable prompt and forbidden. Use `/exit` when the process itself must be relaunched (for example to change launch flags). In a tmux seat started with `exec codex`, exit also ends that pane/session. Under herdr, inspect the pane after exit and require a real shell prompt before relaunch rather than assuming the seat survived. `Esc` interrupts the current turn—it is not the normal process-exit mechanism.
+`/exit` is a valid Codex command and exits the TUI; this is intentionally different from Pi, where `/exit` is a billable prompt and forbidden. Use `/exit` when the process itself must be relaunched (for example to change launch flags). After exit, inspect the pane and require a real shell prompt before relaunch rather than assuming the seat survived — and never `exec` the harness in a pane, or exit takes the pane/tab/workspace with it (HERDR-WORKERS § Launch). `Esc` interrupts the current turn—it is not the normal process-exit mechanism.
 
 ## Context numbers: trust the live denominator
 
@@ -99,16 +97,16 @@ For example, this seat showed `Context 41% used · 258K window · 411K used`; th
 
 ## Weekly quota is shared with Pi
 
-Codex CLI and Pi's `openai-codex` provider draw from the same ChatGPT rolling seven-day pool. Their labels point in opposite directions:
+Codex CLI and Pi's `openai-codex` provider draw from the same the shared Pro pool / ChatGPT rolling seven-day pool. Their labels point in opposite directions:
 
 - Codex footer: `weekly N% left` = remaining;
-- Pi identity extension: `★ <plan> 7d·N%` = spent.
+- Pi identity extension: `★ <account> 7d·N%` = spent.
 
 A same-time reading of Codex `24% left` and Pi `7d·76%` is one pool expressed two ways, not two independent budgets. Fleet capacity planning must sum Codex and Pi work together. Read the live footers at dispatch and heartbeat; do not reserve the same remainder twice.
 
 ## Heartbeat and failure classification
 
-For tmux Codex, **busy** includes the `• Working (... • esc to interrupt)` line; **idle** requires that marker absent and the `›` composer present. Debounce idle over several reads because tool transitions can briefly remove the marker. Under herdr, use integration state plus transcript/process inspection, but retain the hook-trust exception: bare `idle` is never launch or completion proof.
+The Codex busy marker is the `• Working (... • esc to interrupt)` line; **idle** requires that marker absent and the `›` composer present — a screen-shape fallback read via `herdr pane read`, debounced over several reads because tool transitions can briefly remove the marker. Primary is integration hook state plus transcript/process inspection, retaining the hook-trust exception: bare `idle` is never launch or completion proof.
 
 Always keep the generic four surfaces: transcript, process/hook state, contracted artifacts, and return ledger. Codex-specific status/footer evidence is useful but subordinate to the artifact. Classify these explicitly:
 

@@ -3,6 +3,39 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [3.0.0] - 2026-08-20
+
+Based on private field build 5.0.0.
+
+### Added
+
+- Added `SLASH-COMMANDS.md`, a four-harness slash command table covering Claude
+  Code (103 commands), Pi (22), Codex (45), and omp (61), plus a cross-harness
+  comparison matrix and herdr CLI verb reference.
+- Added `TMUX-ARCHIVE.md`, archiving the tmux fabric mechanics for legacy seats.
+- Added `scripts/usage.sh`, a headless quota reader that pulls live usage from
+  the Claude Code OAuth API without injecting `/usage` into a seat.
+- Added judge-seat wave doctrine (§6b): eight rules for writer×N + judge×1 batch
+  waves — advisory-first process claims, SHA-pinned baselines, proxy execution
+  with attribution, instrument-chain provenance, and batch-remainder broadcast.
+- Added mutation-proof pin tests for the return-channel ledger.
+
+### Changed
+
+- Made herdr the sole standing fabric; every seat — commander and worker, any
+  harness — runs in a herdr workspace. tmux mechanics are archived to
+  `TMUX-ARCHIVE.md` and supported only when the owner explicitly names a tmux
+  seat.
+- Made the return-channel notify wire fabric-detected: herdr pane ids (`wX:pY`)
+  are woken over the herdr socket API; everything else takes the legacy tmux
+  wire.
+- Added verification hardening: self-run hard criteria (your standards are your
+  blind spot), independent checker must be at least as strong as the checked
+  item, pipeline exit-code laundering guard, "keep current state" anchored to
+  observed pre-change snapshots, interface-file format checks before batch feed,
+  and regex banned for structured-output counting.
+- Grew the book to seven files plus two new scripts.
+
 ## [2.1.0] - 2026-08-05
 
 ### Added

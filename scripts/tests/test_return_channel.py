@@ -16,7 +16,7 @@ Required coverage (job hard-constraint 7):
   (6) event log is append-only
 Plus: notify failure stays non-fatal (hard-constraint 8).
 
-v2.1 hardening coverage:
+v2.1 hardening coverage (job fc-harden-20260730, hard-constraint 3):
   (H1) two REAL concurrent processes registering the same owned path => exactly one
        wins, one loses (mailbox flock closes the TOCTOU double-register); plus lock
        timeout does not deadlock, and crash-while-holding auto-releases.
@@ -410,7 +410,7 @@ class TestNotifyNonFatal(Base):
 
 
 # ============================================================================
-# v2.1 HARDENING TESTS
+# v2.1 HARDENING TESTS (job fc-harden-20260730)
 # ============================================================================
 
 # (H1) concurrency: mailbox flock closes the TOCTOU double-register -----------

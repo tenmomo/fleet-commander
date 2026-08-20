@@ -5,11 +5,14 @@ Backward-compatible superset of the four-verb v1 handback helper. The original
 interface is untouched:
 
   register  a dispatched task's return contract (task_id, worker_pane, reply_to)
-  return    a terminal result: durable envelope FIRST, then a one-line pane wake-up
+  return    a terminal result: durable envelope FIRST, then a one-line pane wake-up.
+            The wake wire is fabric-detected from the pane token: herdr pane ids
+            (`w6C:p7`, the $HERDR_PANE_ID shape) go over the herdr socket API;
+            anything else takes the legacy tmux wire.
   pending   the returns awaiting a given parent pane (unacknowledged)
   ack       verify-then-close a return; idempotent by task_id
 
-v2 adds a small file-backed control plane (typed-ledger design §4.4) on top of the
+v2 adds a small file-backed control plane (GRAPH-ENG-AGENTS.md §4.4) on top of the
 same mailbox, WITHOUT changing any v1 CLI syntax, output, or path semantics:
 
   transition    drive the typed state machine with an expected-prior + monotonic-seq
@@ -61,7 +64,8 @@ Storage per task (mailbox/<task_id>/):
   ledger.json     v2 atomic typed snapshot (the read cache)
   events.jsonl    v2 append-only audit log, one line per transition (the truth trail)
 
-Durable truth lives in the mailbox (default $TMUX_RETURN_MAILBOX or
+Durable truth lives in the mailbox (default $FLEET_RETURN_MAILBOX, legacy
+$TMUX_RETURN_MAILBOX, or
 $TMPDIR/fleet-commander/mailbox, always OUTSIDE any repo). Notifications are only
 hints: a failed wake-up is non-fatal; the durable record stays discoverable.
 stdlib only; single file; invoked as `python3 .../return-channel.py <verb> ...`.
@@ -152,7 +156,7 @@ def _now():
 
 
 def _default_mailbox():
-    env = os.environ.get("TMUX_RETURN_MAILBOX")
+    env = os.environ.get("FLEET_RETURN_MAILBOX") or os.environ.get("TMUX_RETURN_MAILBOX")
     if env:
         return env
     tmp = os.environ.get("TMPDIR", "/tmp").rstrip("/")
@@ -161,8 +165,8 @@ def _default_mailbox():
 
 def _canon(p):
     """Canonical form of a stored path: expanduser + abspath (normalizes '.', '..',
-    duplicate slashes, and makes it absolute). Deliberately NOT realpath — see H2 in the
-    design notes: realpath resolves symlinks against live filesystem state, so a
+    duplicate slashes, and makes it absolute). Deliberately NOT realpath — see H2 in
+    DESIGN-HARDENING.md: realpath resolves symlinks against live filesystem state, so a
     result_path that does not yet exist at register time could resolve DIFFERENTLY at
     publish time and break the register==publish equality contract. abspath/expanduser
     is a pure, filesystem-state-independent canonical form, so both sides compare stably."""
@@ -288,21 +292,39 @@ def _split_csv(s):
     return [x.strip() for x in s.split(",") if x.strip()]
 
 
+# herdr pane ids look like `w6C:p7` — the exact shape of $HERDR_PANE_ID inside any
+# herdr pane. Detection is by shape: a token matching this is routed over the herdr
+# socket API; everything else takes the legacy tmux wire (archived fabric, kept so
+# old contracts and rare tmux seats still work).
+HERDR_PANE_RE = re.compile(r"^w[0-9A-Za-z]+:p[0-9A-Za-z]+$")
+
+
+def _herdr_detail(r):
+    # herdr CLI errors arrive as JSON on stdout ({"error":{"code":…,"message":…}});
+    # fall back to stderr for exec-level failures.
+    return (r.stdout.strip() or r.stderr.strip())
+
+
 def notify_pane(pane, line, socket=None):
-    """One trusted line via literal send-keys, then a SEPARATE Enter. Never the
-    unnamed buffer, never worker prose. Returns (ok, detail). Any tmux failure —
-    including tmux being absent (test envs) — is caught and reported non-fatally."""
-    base = ["tmux"] + (["-S", socket] if socket else [])
+    """One trusted line, then a SEPARATE Enter — never worker prose. Fabric is
+    detected from the pane token: `wX:pY` ($HERDR_PANE_ID shape) goes over the herdr
+    socket API; anything else takes the archived tmux wire. Returns (ok, detail).
+    Any failure — including the fabric binary being absent — is non-fatal."""
+    if HERDR_PANE_RE.match(pane):
+        cmds = (["herdr", "pane", "send-text", pane, line],
+                ["herdr", "pane", "send-keys", pane, "enter"])
+        detail_of = _herdr_detail
+    else:
+        base = ["tmux"] + (["-S", socket] if socket else [])
+        cmds = (base + ["send-keys", "-t", pane, "-l", line],
+                base + ["send-keys", "-t", pane, "C-m"])
+        detail_of = lambda r: r.stderr.strip()
     try:
-        r1 = subprocess.run(base + ["send-keys", "-t", pane, "-l", line],
-                            capture_output=True, text=True)
-        if r1.returncode != 0:
-            return False, r1.stderr.strip()
-        r2 = subprocess.run(base + ["send-keys", "-t", pane, "C-m"],
-                            capture_output=True, text=True)
-        if r2.returncode != 0:
-            return False, r2.stderr.strip()
-    except OSError as e:  # tmux binary missing / not executable — stay non-fatal
+        for cmd in cmds:
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode != 0:
+                return False, detail_of(r)
+    except OSError as e:  # fabric binary missing / not executable — stay non-fatal
         return False, str(e)
     return True, ""
 
@@ -947,7 +969,8 @@ def build_parser():
     p = argparse.ArgumentParser(prog="return-channel", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--mailbox", default=_default_mailbox(),
-                   help="mailbox root (default: $TMUX_RETURN_MAILBOX or $TMPDIR/fleet-commander/mailbox)")
+                   help="mailbox root (default: $FLEET_RETURN_MAILBOX / legacy "
+                        "$TMUX_RETURN_MAILBOX / $TMPDIR/fleet-commander/mailbox)")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     r = sub.add_parser("register", help="register a dispatched task's return contract")
@@ -973,7 +996,8 @@ def build_parser():
     g = rt.add_mutually_exclusive_group()
     g.add_argument("--report", help="short report text (stored in envelope only)")
     g.add_argument("--report-file", help="read report text from a file")
-    rt.add_argument("--socket", help="tmux -S socket for notification (tests/isolation)")
+    rt.add_argument("--socket", help="tmux -S socket for notification (tests/isolation; "
+                                     "ignored for herdr wX:pY panes)")
     rt.add_argument("--no-notify", action="store_true",
                     help="write durable envelope only, skip the pane wake-up")
     rt.set_defaults(func=cmd_return)
@@ -1023,7 +1047,8 @@ def build_parser():
     pt.add_argument("--result-paths", help="ONE comma-separated arg: result paths (else the "
                     "ledger's). If the task registered a result set, this must equal it (H2)")
     pt.add_argument("--seq", type=int, help="monotonic seq token (stale/old rejected)")
-    pt.add_argument("--socket", help="tmux -S socket for notification (tests/isolation)")
+    pt.add_argument("--socket", help="tmux -S socket for notification (tests/isolation; "
+                                     "ignored for herdr wX:pY panes)")
     pt.add_argument("--no-notify", action="store_true")
     pt.add_argument("--note")
     pt.add_argument("--actor", default="worker")
