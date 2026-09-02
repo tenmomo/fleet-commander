@@ -95,14 +95,17 @@ The footer exposes two different counters:
 
 For example, this seat showed `Context 41% used · 258K window · 411K used`; that is internally consistent, not proof of a 411K live context. Use the percentage + window for rollover risk, cumulative `used` only for accounting, and the fleet `ctx-probe` for measured degradation. Persist to disk before the live context becomes unsafe; never wait for the advertised maximum.
 
-## Weekly quota is shared with Pi
+## Weekly quota — the local Codex CLI and Pi are NOT one pool (owner correction 2026-08-24)
 
-Codex CLI and Pi's `openai-codex` provider draw from the same the shared Pro pool / ChatGPT rolling seven-day pool. Their labels point in opposite directions:
+**On this fleet's host the local `codex` CLI and Pi do NOT share one pool.** Only **Pi** (bare `~/.pi/agent/` auth) draws the shared **Pro** rolling seven-day pool; the local `codex` CLI authenticates with a separate personal account — a smaller personal quota, never the fleet pool. A `--kind codex` seat therefore spends that personal subscription; a `--kind pi` seat spends the shared Pro pool. This supersedes the earlier "one shared pool" claim, which was wrong for this host (the earlier reading conflated the two ChatGPT-family footers).
 
-- Codex footer: `weekly N% left` = remaining;
-- Pi identity extension: `★ <account> 7d·N%` = spent.
+⇒ **Default every fleet worker/commander seat to herdr + Pi** (SKILL.md §Dispatch). Pi is the ONLY harness on this host whose usage lands on the shared pool, so the standing burn routes through it. Reach for `--kind codex` ONLY when the owner explicitly wants to spend the personal quota, or names a codex seat.
 
-A same-time reading of Codex `24% left` and Pi `7d·76%` is one pool expressed two ways, not two independent budgets. Fleet capacity planning must sum Codex and Pi work together. Read the live footers at dispatch and heartbeat; do not reserve the same remainder twice.
+Footer labels point opposite directions and now name **two independent budgets**, not one pool two ways:
+- Codex footer `weekly N% left` = remaining on the personal quota;
+- Pi identity extension `★ <account> 7d·N%` = spent on the shared Pro pool.
+
+Do not sum them and do not reserve one against the other; read each seat's own footer for its own quota.
 
 ## Heartbeat and failure classification
 

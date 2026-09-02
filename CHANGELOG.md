@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [3.1.1] - 2026-09-02
+
+### Fixed
+
+- Rewrote CODEX-WORKERS "Weekly quota": the local Codex CLI and Pi are two
+  independent budgets, not one shared pool (owner correction 2026-08-24). The
+  3.1.0 SKILL.md worker-harness default already pointed at this section but
+  the section itself still carried the superseded one-pool claim.
+- Removed a leftover account label from footer examples.
+
 ## [3.1.0] - 2026-09-02
 
 Based on private field build 5.4.0.

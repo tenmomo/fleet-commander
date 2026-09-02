@@ -10,7 +10,7 @@ description: >
   worker, or coordinate several agent sessions.
 metadata:
   author: "<OWNER>"
-  version: "3.1.0"
+  version: "3.1.1"
   scope: >-
     the full commander loop — pane-targeting, launch, inject, heartbeat, handback,
     harvest (HARVEST.md), and the Worker→commander return channel plus the typed
