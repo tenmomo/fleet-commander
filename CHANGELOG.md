@@ -3,6 +3,49 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [3.1.0] - 2026-09-02
+
+Based on private field build 5.4.0.
+
+### Added
+
+- Added the provider-route gate: subscription-authenticated workers run only on
+  their supported harness; a route that lists models and reports usage is not
+  proof it can generate. Canary every unproven harness×provider×auth route with
+  one no-tool generation before dispatch.
+- Added the worker-harness default (herdr + Pi) and the rule that another
+  harness is picked only when the owner explicitly wants that route's quota
+  spent.
+- Added "Pi as commander seat" (PI-WORKERS): Pi has no `/goal`, does not resume
+  itself after auto-compact; a shell guard loop treats idle/blocked/done all as
+  stalls, never pushes during `Compacting context`, and stops on a line-anchored
+  `QUEUE-EMPTY` marker.
+- Added the third face of the seat-commissioning gate (HERDR-WORKERS): the model
+  name can be right while the context window is wrong — read the footer
+  denominator, and rescue a working seat with a queued `/model …[1m]` switch.
+- Added the fourth face: a herdr server started from inside a Claude Code
+  session passes `CLAUDE_CODE_CHILD_SESSION` to every pane and worker
+  transcripts silently stop saving; clear it with `--env` at tab creation.
+- Added the stale-constraint rule for multi-round revision contracts: a red line
+  that was correct in v1 can block the correct action in v2; re-read every
+  constraint each round and acknowledge expiry explicitly.
+- Added the producer-side interface-file rule: close (or fork) before reading
+  what you wrote, and assert record counts against the source.
+- Added the bash 3.2 sentinel trap on macOS (`declare -A` silently collapses
+  keys) and the decoy-task known-positive that catches it.
+- Added the PR-run anchoring rule: `gh run list --commit` sees only push runs;
+  wait on PR CI with `--branch <head>` + `headSha` or `gh pr checks --watch`.
+- Added the Remote Control dialog rule: re-read the pane before answering a
+  `waiting` seat — the owner may already have answered from the worker session.
+
+### Changed
+
+- Rewrote the reasoning-visibility rule: no supported harness×provider route
+  exposes a dependable reasoning channel; watch tool calls, deliverables, and
+  ledger state instead.
+- Clarified that a typed-lane `acked` state is terminal: hold at `verified`
+  during revise loops, and a register upsert needs a same-batch `dispatched`.
+
 ## [3.0.0] - 2026-08-20
 
 Based on private field build 5.0.0.
