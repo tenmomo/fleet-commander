@@ -184,7 +184,7 @@ protocol. But the commander loop principles work even with manual tracking.
 
 ## Release history
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Current: **v3.1.1**
+See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Current: **v3.1.2**
 (2026-08-20).
 
 - **v3.1.0** — provider-route gate, Pi-as-commander guard loop, stale-constraint rule, bash-3.2 sentinel trap, PR-run anchoring

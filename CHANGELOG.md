@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [3.1.2] - 2026-09-02
+
+### Fixed
+
+- Removed two more leftover account labels from HERDR-WORKERS and
+  CODEX-WORKERS footer examples (same family as 3.1.1).
+
 ## [3.1.1] - 2026-09-02
 
 ### Fixed
