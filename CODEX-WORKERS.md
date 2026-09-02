@@ -4,7 +4,7 @@ Read this file completely whenever the target pane runs `codex`. The generic com
 
 ## Commissioning gate
 
-**Pin a ChatGPT-supported model explicitly.** On 2026-07-31 a fleet seat launched with `codex-2025-07-15`; the ChatGPT-authenticated Codex route returned HTTP 400 immediately, produced no artifact, and left the task merely `registered` while the commander still described it as working. That provider id is not a valid fleet default. For the current the shared Pro pool / ChatGPT route use one of:
+**Pin a ChatGPT-supported model explicitly.** On 2026-07-31 a fleet seat launched with `codex-2025-07-15`; the ChatGPT-authenticated Codex route returned HTTP 400 immediately, produced no artifact, and left the task merely `registered` while the commander still described it as working. That provider id is not a valid fleet default. For the current ChatGPT route use one of:
 
 ```text
 gpt-5.6-sol

@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [3.1.3] - 2026-09-02
+
+### Fixed
+
+- Generalized remaining host-specific details in teaching examples (a
+  credential backup filename, internal table / process / session names, a
+  concern path in a footer capture); filled the author field.
+
 ## [3.1.2] - 2026-09-02
 
 ### Fixed

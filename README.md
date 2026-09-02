@@ -57,7 +57,7 @@ The commander loop is one line:
 
 - A POSIX host with **herdr** (macOS, Linux, or WSL2) — the standing seat fabric
 - At least one supported agent: [Claude Code](https://docs.anthropic.com/en/docs/claude-code),
-  [Pi](https://pi.ai), [Codex](https://openai.com/codex), or omp
+  [Pi](https://github.com/badlogic/pi-mono), [Codex](https://openai.com/codex), or omp
 - tmux is supported for legacy seats but no longer required as the primary fabric
 
 ### Install as a Claude Code skill
@@ -184,7 +184,7 @@ protocol. But the commander loop principles work even with manual tracking.
 
 ## Release history
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Current: **v3.1.2**
+See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Current: **v3.1.3**
 (2026-08-20).
 
 - **v3.1.0** — provider-route gate, Pi-as-commander guard loop, stale-constraint rule, bash-3.2 sentinel trap, PR-run anchoring
